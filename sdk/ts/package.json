@@ -1,6 +1,6 @@
 {
   "name": "@myzonerocks/gossmark",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "The engine behind the checkmark: credentials, an offline trust chain, and scoped delegation that never touches a handle.",
   "type": "module",
   "main": "./dist/index.js",

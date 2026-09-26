@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { Kind, Mark, MarkError, Status } from '../src/index'
 
-const wasm = readFileSync(new URL('../gossmark.wasm', import.meta.url))
+const wasm = readFileSync(new URL('../wasm/gossmark.wasm', import.meta.url))
 const engine = await Mark.load(wasm)
 
 /** The preimage, laid out the way the engine lays it out. Written by hand on purpose: a client

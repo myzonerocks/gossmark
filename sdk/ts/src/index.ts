@@ -96,8 +96,11 @@ export class Mark {
   }
 
   static async load(bytes: BufferSource): Promise<Mark> {
-    const { instance } = await WebAssembly.instantiate(bytes, {})
-    return new Mark(instance.exports as unknown as Exports)
+    // Bun's ambient types resolve instantiate to the Module overload, which answers an Instance
+    // rather than a source holding one. The runtime shape is the source, so the cast goes through
+    // unknown and the shape is named on the way out instead of destructured blind.
+    const answer = (await WebAssembly.instantiate(bytes, {})) as unknown as { instance: WebAssembly.Instance }
+    return new Mark(answer.instance.exports as unknown as Exports)
   }
 
   get abiVersion(): number {

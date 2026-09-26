@@ -1,0 +1,11 @@
+# Builds io.github.avosa:gossmark from a tag for consumers who resolve it over JitPack.
+# The builder has no Android NDK, so the native libraries come from the release the tag
+# already carries; an AAR without them would load nothing at run time. Maven Central
+# carries the same AAR and is the recommended route.
+jdk:
+  - openjdk21
+install:
+  - curl -fsSL "https://github.com/myzonerocks/gossmark/releases/download/$VERSION/gossmark-android-jniLibs.zip" -o /tmp/jniLibs.zip
+  - mkdir -p zig-out/android && unzip -q -o /tmp/jniLibs.zip -d zig-out/android
+  - test -n "$(find zig-out/android -name 'libgossmark_jni.so' -print -quit)"
+  - cd sdk/kotlin && ./gradlew publishToMavenLocal -PVERSION_NAME="${VERSION#v}"

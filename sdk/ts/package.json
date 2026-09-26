@@ -1,0 +1,13 @@
+{
+  "name": "@myzonerocks/gossmark",
+  "version": "0.1.0-alpha.1",
+  "description": "The engine behind the checkmark: credentials, an offline trust chain, and scoped delegation that never touches a handle.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": ["src", "gossmark.wasm", "README.md"],
+  "scripts": {
+    "test": "bun test"
+  },
+  "license": "SEE LICENSE IN LICENSE.md"
+}

@@ -16,6 +16,18 @@ pub const Kind = enum(u8) {
     /// An organization vouches for its own staff. Signed by the org, chaining to root.
     staff = 4,
 
+    /// The kind a byte names, or nothing. Written out rather than cast, so a byte nobody
+    /// defined is refused at the edge instead of becoming an enum value with no meaning.
+    pub fn fromByte(byte: u8) ?Kind {
+        return switch (byte) {
+            1 => .individual,
+            2 => .organization,
+            3 => .capability,
+            4 => .staff,
+            else => null,
+        };
+    }
+
     /// The domain tag mixed into the preimage. Distinct per kind and never reused.
     pub fn tag(self: Kind) []const u8 {
         return switch (self) {

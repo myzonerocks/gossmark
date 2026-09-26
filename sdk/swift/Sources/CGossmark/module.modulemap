@@ -1,0 +1,5 @@
+module CGossmark {
+    header "include/gossmark.h"
+    link "gossmark"
+    export *
+}

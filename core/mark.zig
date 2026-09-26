@@ -13,6 +13,8 @@ const std = @import("std");
 
 pub const cred = @import("cred.zig");
 pub const chain = @import("chain.zig");
+pub const revoke = @import("revoke.zig");
+pub const wire = @import("wire.zig");
 
 pub const Kind = cred.Kind;
 pub const Subject = cred.Subject;
@@ -21,6 +23,8 @@ pub const Signed = cred.Signed;
 pub const Roots = chain.Roots;
 pub const Revoked = chain.Revoked;
 pub const Verified = chain.Verified;
+pub const Snapshot = revoke.Snapshot;
+pub const Holder = revoke.Holder;
 
 pub const sign = cred.sign;
 pub const verifyDirect = chain.verifyDirect;
@@ -30,4 +34,6 @@ test {
     std.testing.refAllDecls(@This());
     _ = cred;
     _ = chain;
+    _ = revoke;
+    _ = wire;
 }

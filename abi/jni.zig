@@ -25,11 +25,20 @@ pub const Op = enum(i32) {
 const heap = std.heap.smp_allocator;
 
 fn throwStatus(env: Env, status: i32) void {
-    const found = env.*.*.FindClass.?(env, "rocks/myzone/gossmark/MarkException");
-    if (found == null) return;
     var text: [32]u8 = undefined;
     const message = std.fmt.bufPrintZ(&text, "{d}", .{status}) catch "internal";
-    _ = env.*.*.ThrowNew.?(env, found, message.ptr);
+    if (env.*.*.FindClass.?(env, "rocks/myzone/gossmark/MarkException")) |typed| {
+        _ = env.*.*.ThrowNew.?(env, typed, message.ptr);
+        return;
+    }
+    // The class is looked up by name, so a build that renames or strips it finds nothing. Falling
+    // back to a plain runtime exception keeps a refusal a refusal: returning null instead would
+    // hand Kotlin a null where it declares a non-null array, and the caller would see a null
+    // pointer exception carrying nothing about why the call was refused.
+    env.*.*.ExceptionClear.?(env);
+    if (env.*.*.FindClass.?(env, "java/lang/RuntimeException")) |plain| {
+        _ = env.*.*.ThrowNew.?(env, plain, message.ptr);
+    }
 }
 
 /// A byte array out of the JVM, copied into the library's own memory for the call.

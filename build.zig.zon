@@ -1,0 +1,8 @@
+.{
+    .name = .gossmark,
+    .version = "0.1.0-alpha.1",
+    .fingerprint = 0xb60682daeef5d1b0,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{},
+    .paths = .{ "build.zig", "build.zig.zon", "core", "LICENSE.md", "README.md" },
+}

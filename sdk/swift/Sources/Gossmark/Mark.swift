@@ -1,5 +1,5 @@
 import Foundation
-import CGossmark
+import GossmarkKit
 
 /// What a badge says once its chain has been walked. Built only by a check, never by hand: a
 /// credential that has not been through the chain has not been checked, and this type is the

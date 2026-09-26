@@ -143,5 +143,26 @@ pub fn build(b: *std.Build) void {
         android_step.dependOn(&b.addFail("the android step needs -Dndk=<ndk root> or ANDROID_NDK_HOME").step);
     }
 
+    // The Apple slices, wrapped into an xcframework by tools/build-xcframework.sh. Static,
+    // because an app embedding a dynamic library pays for it at every launch and gains nothing:
+    // there is no second consumer in the process to share it with.
+    const apple_step = b.step("apple", "Build the iOS device, iOS simulator and macOS static libraries");
+    const apple_slices = [_]struct { dir: []const u8, query: std.Target.Query }{
+        .{ .dir = "ios", .query = .{ .cpu_arch = .aarch64, .os_tag = .ios } },
+        .{ .dir = "ios-simulator", .query = .{ .cpu_arch = .aarch64, .os_tag = .ios, .abi = .simulator } },
+        .{ .dir = "ios-simulator-x86_64", .query = .{ .cpu_arch = .x86_64, .os_tag = .ios, .abi = .simulator } },
+        .{ .dir = "macos", .query = .{ .cpu_arch = .aarch64, .os_tag = .macos } },
+        .{ .dir = "macos-x86_64", .query = .{ .cpu_arch = .x86_64, .os_tag = .macos } },
+    };
+    for (apple_slices) |slice| {
+        const slice_target = b.resolveTargetQuery(slice.query);
+        const lib = b.addLibrary(.{
+            .name = "gossmark_static",
+            .root_module = rootFor(b, "abi/gossmark.zig", slice_target, optimize, false),
+            .linkage = .static,
+        });
+        apple_step.dependOn(installInto(b, lib, slice.dir));
+    }
+
     _ = c_flags;
 }

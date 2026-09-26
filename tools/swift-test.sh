@@ -1,14 +1,11 @@
 #!/bin/sh
-# Runs the Swift binding's tests against the staged C library.
+# Runs the Swift binding's tests against the xcframework the checkout built.
 #
-# The rpath is absolute and given here rather than left to the environment: dyld ignores
-# DYLD_LIBRARY_PATH for the test helper under system integrity protection, so a run that relied
-# on the environment failed to load the bundle with a message about a missing dylib and nothing
-# about why.
+# No linker flags and no rpath: the kit is a binary target, so SwiftPM knows where it is and the
+# test bundle finds it without the environment being told anything. That was not true of the
+# system-library shape this replaced, where dyld ignored DYLD_LIBRARY_PATH for the test helper
+# under system integrity protection and the failure read as a missing dylib with no reason given.
 set -eu
 cd "$(dirname "$0")/.."
-zig build c
-exec swift test \
-    -Xlinker -L"$PWD/zig-out/c" \
-    -Xlinker -lgossmark \
-    -Xlinker -rpath -Xlinker "$PWD/zig-out/c" "$@"
+[ -d zig-out/GossmarkKit.xcframework ] || tools/build-xcframework.sh
+exec swift test "$@"

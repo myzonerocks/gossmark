@@ -196,7 +196,10 @@ export class Mark {
       const len = view.getUint32(cell + 4, true)
       // Copied out before the cell is freed: the view is a window onto the core's memory, and
       // that memory is the core's again the moment gm_free returns.
-      const copy = new Uint8Array(this.wasm.memory.buffer, ptr, len).slice()
+      // A view is only built when there is something to view. An answer of nothing carries no
+      // address worth reading, and a typed array at an address past the end of memory throws
+      // whatever its length is.
+      const copy = len === 0 ? new Uint8Array(0) : new Uint8Array(this.wasm.memory.buffer, ptr, len).slice()
       this.wasm.gm_free(cell)
       return copy
     } finally {

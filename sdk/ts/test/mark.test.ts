@@ -91,3 +91,29 @@ describe('the web binding', () => {
     expect(() => engine.openSnapshot(signed, [root], 7n)).toThrow(new MarkError(Status.stale))
   })
 })
+
+describe('a deployment that has revoked nobody', () => {
+  // The web client threw on every page load for this: an empty list answered a sentinel pointer
+  // past the end of memory, and a typed array built at that offset throws whatever its length
+  // is. Nothing must read as nothing, all the way out.
+  test('opens an empty snapshot without throwing', () => {
+    const seed = seedOf(11)
+    const root = engine.publicKey(seed)
+    const signed = engine.signSnapshot(seed, 1n, 900n, [])
+    const opened = engine.openSnapshot(signed, [root], 0n)
+    expect(opened.ids).toEqual([])
+    expect(opened.seq).toBe(1n)
+    expect(opened.issuedAt).toBe(900n)
+  })
+
+  // And a badge still checks out against it, which is the whole point: a box that has revoked
+  // nobody should verify everybody it issued to.
+  test('still verifies a badge against it', () => {
+    const seed = seedOf(11)
+    const root = engine.publicKey(seed)
+    const signed = engine.sign(seed, preimage({ kind: Kind.individual, issuer: root, address: 0xa7, category: 'creator', issuedAt: 100n, id: 0xd7 }))
+    const opened = engine.openSnapshot(engine.signSnapshot(seed, 1n, 900n, []), [root], 0n)
+    const badge = engine.verifyDirect(signed, [root], opened.ids, 500n)
+    expect(badge.category).toBe('creator')
+  })
+})

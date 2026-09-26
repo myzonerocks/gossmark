@@ -63,6 +63,14 @@ fn bytesIn(p: ?[*]const u8, n: usize) []const u8 {
 
 fn give(cell: ?*GmBuffer, data: []const u8) !void {
     const out = cell orelse return error.BadArgument;
+    // Nothing is handed back as nothing. A zero-length allocation answers an aligned sentinel
+    // pointer rather than a real address, and a host that builds a view at that offset is asking
+    // for a window past the end of memory: a web client threw on every page load for exactly
+    // this, on a deployment that had simply revoked nobody.
+    if (data.len == 0) {
+        out.* = .{ .ptr = null, .len = 0 };
+        return;
+    }
     const copy = try heap.alloc(u8, data.len);
     @memcpy(copy, data);
     out.* = .{ .ptr = copy.ptr, .len = copy.len };
@@ -397,4 +405,36 @@ test "freeing a cell that was never filled is safe" {
     gm_free(&cell);
     gm_free(null);
     try testing.expect(cell.ptr == null);
+}
+
+test "an empty answer carries no address at all" {
+    // The bug this is here for: a zero-length allocation answers an aligned sentinel pointer
+    // rather than a real address, and a web host that built a view at that offset threw on every
+    // page load, on a deployment that had simply revoked nobody.
+    var cell = GmBuffer{ .ptr = null, .len = 0 };
+    try give(&cell, &.{});
+    try testing.expect(cell.ptr == null);
+    try testing.expectEqual(@as(usize, 0), cell.len);
+    gm_free(&cell);
+
+    // The path a client actually takes: sign an empty snapshot, open it, and get nothing back
+    // that anybody has to dereference.
+    const seed = seedOf(11);
+    var key_cell = GmBuffer{ .ptr = null, .len = 0 };
+    try testing.expectEqual(Status.ok, gm_public_key(&seed, seed.len, &key_cell));
+    defer gm_free(&key_cell);
+    const issuer = key_cell.ptr.?[0..32].*;
+
+    var snap = GmBuffer{ .ptr = null, .len = 0 };
+    try testing.expectEqual(Status.ok, gm_snapshot_sign(&seed, seed.len, 1, 900, null, 0, &snap));
+    defer gm_free(&snap);
+
+    var roots: [4 + 32]u8 = undefined;
+    std.mem.writeInt(u32, roots[0..4], 1, .big);
+    @memcpy(roots[4..], &issuer);
+    var ids = GmBuffer{ .ptr = null, .len = 0 };
+    try testing.expectEqual(Status.ok, gm_snapshot_open(snap.ptr, snap.len, &roots, roots.len, 0, &ids, null, null));
+    defer gm_free(&ids);
+    try testing.expect(ids.ptr == null);
+    try testing.expectEqual(@as(usize, 0), ids.len);
 }

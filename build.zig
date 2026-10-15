@@ -88,7 +88,14 @@ pub fn build(b: *std.Build) void {
     const abi_tests = b.addTest(.{ .root_module = rootFor(b, "abi/gossmark.zig", target, optimize, true) });
     const run_abi_tests = b.addRunArtifact(abi_tests);
 
+    // The layout gate runs with the tests: a tree a personal global ignore hides is a tree
+    // that silently leaves the repository, so it fails here rather than at a missing file.
+    const ignore = b.addSystemCommand(&.{ "bash", "tools/gitignore.sh" });
+    ignore.setCwd(b.path("."));
+    b.step("gitignore", "Every owned source directory is re-included in .gitignore").dependOn(&ignore.step);
+
     const test_step = b.step("test", "Run every unit test");
+    test_step.dependOn(&ignore.step);
     test_step.dependOn(&run_unit_tests.step);
     test_step.dependOn(&run_abi_tests.step);
 

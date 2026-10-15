@@ -1,3 +1,15 @@
+# A contributor's global ignore file can match a directory this repository owns and
+# silently drop its source, so every owned tree is re-included here first. Later rules
+# still win inside them. tools/gitignore.sh keeps this list in step with the tree.
+!abi/**
+!conformance/**
+!core/**
+!docs/**
+!include/**
+!nix/**
+!sdk/**
+!tools/**
+
 .zig-cache/
 zig-out/
 docs/private/

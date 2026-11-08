@@ -1,0 +1,98 @@
+---
+title: C
+description: The surface every SDK is built on.
+---
+
+```c
+#include <gossmark.h>
+```
+
+## The shape of every call
+
+- Inputs are a pointer and a length. `NULL` with zero means absent.
+- Byte outputs are `GmBuffer` cells the library fills. Free each once with
+  `gm_free`.
+- Every call returns a `GmStatus`. On any status other than `GM_OK` every
+  output cell is left empty.
+
+```c
+typedef struct GmBuffer {
+    uint8_t *ptr;
+    size_t len;
+} GmBuffer;
+```
+
+## Version and memory
+
+```c
+uint32_t gm_abi_version(void);
+void gm_free(GmBuffer *cell);
+```
+
+`gm_free` is safe on a cell that was never filled, and on `NULL`.
+
+For a host with no heap of its own to lend, such as wasm:
+
+```c
+uint8_t *gm_alloc(size_t len);
+void gm_dealloc(uint8_t *ptr, size_t len);
+```
+
+Memory from `gm_alloc` is yours and is freed with `gm_dealloc`, never with
+`gm_free`.
+
+## Sizes
+
+```c
+size_t gm_preimage_len(void);
+size_t gm_signed_len(void);
+size_t gm_verified_len(void);
+```
+
+## Keys and signing
+
+```c
+GmStatus gm_public_key(const uint8_t *seed, size_t seed_len, GmBuffer *out);
+
+GmStatus gm_sign(const uint8_t *seed, size_t seed_len,
+                 const uint8_t *cred, size_t cred_len,
+                 GmBuffer *out);
+```
+
+## Verifying
+
+```c
+GmStatus gm_verify_direct(const uint8_t *signed_cred, size_t signed_len,
+                          const uint8_t *roots, size_t roots_len,
+                          const uint8_t *revoked, size_t revoked_len,
+                          int64_t now, GmBuffer *out);
+```
+
+```c
+GmStatus gm_verify_staff(const uint8_t *staff, size_t staff_len,
+                         const uint8_t *capability, size_t capability_len,
+                         const uint8_t *roots, size_t roots_len,
+                         const uint8_t *revoked, size_t revoked_len,
+                         int64_t now, GmBuffer *out);
+```
+
+Roots are a big-endian `uint32` count followed by that many 32-byte keys.
+Revoked is a big-endian `uint32` count followed by that many 16-byte ids.
+
+## Revocation
+
+```c
+GmStatus gm_snapshot_sign(const uint8_t *seed, size_t seed_len,
+                          uint64_t seq, int64_t issued_at,
+                          const uint8_t *ids, size_t ids_len,
+                          GmBuffer *out);
+```
+
+```c
+GmStatus gm_snapshot_open(const uint8_t *snapshot, size_t snapshot_len,
+                          const uint8_t *roots, size_t roots_len,
+                          uint64_t held_seq,
+                          GmBuffer *out_ids, uint64_t *out_seq, int64_t *out_issued_at);
+```
+
+`out_seq` and `out_issued_at` may be `NULL`.

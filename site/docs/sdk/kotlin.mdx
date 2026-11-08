@@ -1,0 +1,59 @@
+---
+title: Kotlin
+description: Sign, verify and revoke on Android, through the AAR's bundled core.
+---
+
+```kotlin
+import rocks.myzone.gossmark.Mark
+```
+
+`Mark` is an object, so there's nothing to construct.
+
+## Keys and signing
+
+```kotlin
+val pub = Mark.publicKey(seed)
+val signed = Mark.sign(seed, preimage)
+```
+
+## Verifying
+
+```kotlin
+val badge = Mark.verifyDirect(signed, roots, revoked, now)
+val staffBadge = Mark.verifyStaff(staff, capability, roots, revoked, now)
+```
+
+## What you get back
+
+```kotlin
+data class Badge(
+    val kind: Int,
+    val subject: Subject,
+    val category: String,
+    val issuedAt: Long,
+    val expiresAt: Long,
+    val issuer: ByteArray,
+    val via: Subject?,
+)
+```
+
+```kotlin
+data class Subject(val chain: Long, val address: ByteArray)
+```
+
+## Revocation
+
+```kotlin
+val snapshot = Mark.signSnapshot(seed, seq, issuedAt, ids)
+val opened = Mark.openSnapshot(snapshot, roots, heldSeq)
+```
+
+```kotlin
+data class Snapshot(val ids: List<ByteArray>, val seq: Long, val issuedAt: Long)
+```
+
+## Threads
+
+The calls are pure functions over bytes: no handles, no shared state, nothing
+to close. Call them from any thread, including a coroutine on the IO
+dispatcher.

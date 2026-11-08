@@ -1,0 +1,56 @@
+---
+title: Revocation
+description: Signed snapshots, a sequence that only moves forward, and why that matters.
+---
+
+A verifier is handed the revocation list. It never fetches one, so your app
+decides how fresh the list is and can say so.
+
+## Signing a snapshot
+
+```swift
+let snapshot = try Mark.signSnapshot(seed: rootSeed, seq: 42, issuedAt: now, ids: ids)
+```
+
+```c
+GmStatus gm_snapshot_sign(const uint8_t *seed, size_t seed_len,
+                          uint64_t seq, int64_t issued_at,
+                          const uint8_t *ids, size_t ids_len,
+                          GmBuffer *out);
+```
+
+Ids are a flat run of 16-byte values.
+
+## Opening one
+
+```swift
+let (ids, seq, issuedAt) = try Mark.openSnapshot(snapshot, roots: [rootKey], heldSeq: held)
+```
+
+```c
+GmStatus gm_snapshot_open(const uint8_t *snapshot, size_t snapshot_len,
+                          const uint8_t *roots, size_t roots_len,
+                          uint64_t held_seq,
+                          GmBuffer *out_ids, uint64_t *out_seq, int64_t *out_issued_at);
+```
+
+It checks the snapshot against the roots and, when it's newer than the
+sequence you hold, writes the ids out.
+
+## Why an older sequence is refused
+
+An older or equal sequence answers `GM_STALE`.
+
+Without that rule, anyone able to serve your client an old file could bring a
+revoked badge back by replaying it. The sequence only moves forward, so a
+replay is a no-op rather than an attack.
+
+Keep the sequence you hold alongside the ids, and pass it every time.
+
+## How fresh is fresh enough
+
+`out_issued_at` tells you when the snapshot was made. That's your signal, and
+it's a product decision what to do with it: show the badge with a note,
+refuse to show it, or quietly refresh.
+
+The library hands you the number and makes no choice for you.

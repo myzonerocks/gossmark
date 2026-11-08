@@ -1,0 +1,45 @@
+{
+  "items": [
+    { "type": "link", "path": "/", "title": "Introduction" },
+    { "type": "link", "path": "/about", "title": "What it's for" },
+    {
+      "type": "folder",
+      "path": "/start",
+      "title": "Start",
+      "children": [
+        { "type": "link", "path": "/quickstart", "title": "Quickstart" },
+        { "type": "link", "path": "/install", "title": "Install" }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/sdk",
+      "title": "SDKs",
+      "children": [
+        { "type": "link", "path": "/swift", "title": "Swift" },
+        { "type": "link", "path": "/kotlin", "title": "Kotlin" },
+        { "type": "link", "path": "/typescript", "title": "TypeScript" },
+        { "type": "link", "path": "/go", "title": "Go" },
+        { "type": "link", "path": "/c", "title": "C" }
+      ]
+    },
+    {
+      "type": "folder",
+      "path": "/concepts",
+      "title": "Concepts",
+      "children": [
+        { "type": "link", "path": "/credentials", "title": "Credentials" },
+        { "type": "link", "path": "/chain", "title": "The chain" },
+        { "type": "link", "path": "/revocation", "title": "Revocation" },
+        { "type": "link", "path": "/offline", "title": "Checking offline" },
+        { "type": "link", "path": "/errors", "title": "Errors" }
+      ]
+    },
+    {
+      "type": "link",
+      "path": "/sponsor",
+      "title": "Financial Support",
+      "href": "https://github.com/sponsors/avosa"
+    }
+  ]
+}

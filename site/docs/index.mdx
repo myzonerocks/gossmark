@@ -1,0 +1,54 @@
+---
+title: Introduction
+description: What gossmark is, and where to start.
+---
+
+gossmark is the engine behind a verified badge. It issues the credentials a
+badge is made of and checks them, including the chain behind one: a staff
+badge is valid because a key signed it whose power a root key signed.
+
+All of it works offline.
+
+```swift
+let badge = try Mark.verifyDirect(signed, roots: roots, revoked: revoked, now: now)
+```
+
+<Tip>
+Straight to code: [Swift](/docs/sdk/swift), [Kotlin](/docs/sdk/kotlin),
+[TypeScript](/docs/sdk/typescript), [Go](/docs/sdk/go), [C](/docs/sdk/c).
+</Tip>
+
+## Where to start
+
+| If you're | Start here |
+| --- | --- |
+| Checking a badge in an app | your SDK, then [checking offline](/docs/concepts/offline) |
+| Issuing badges | [Credentials](/docs/concepts/credentials) |
+| Letting an organization issue | [The chain](/docs/concepts/chain) |
+| Taking a badge away | [Revocation](/docs/concepts/revocation) |
+| Handling a failed check | [Errors](/docs/concepts/errors) |
+
+## The four kinds
+
+```c
+typedef enum GmKind {
+    GM_INDIVIDUAL = 1,
+    GM_ORGANIZATION = 2,
+    GM_CAPABILITY = 3,
+    GM_STAFF = 4
+} GmKind;
+```
+
+An individual and an organization are badges. A capability is permission for
+an organization to issue. A staff badge is what an organization issues with
+that permission.
+
+## Two things that shape everything here
+
+**Nothing fetches and nothing reads a clock.** A verifier is handed its
+roots, its revocation snapshot and the moment to check against. That's what
+lets a badge be checked offline, and what makes a client with a wrong clock
+fail the same way everywhere.
+
+**Nothing knows what anybody is called.** A credential's subject is a
+wallet-bound identifier, so a handle can change without touching a badge.

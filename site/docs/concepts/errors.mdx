@@ -1,0 +1,54 @@
+---
+title: Errors
+description: Every status, what it means, and what your app should do about it.
+---
+
+```c
+typedef enum GmStatus {
+    GM_OK = 0,
+    GM_BAD_ARGUMENT = 1,
+    GM_BAD_SIGNATURE = 2,
+    GM_UNTRUSTED_ISSUER = 3,
+    GM_NOT_LIVE = 4,
+    GM_REVOKED = 5,
+    GM_WRONG_KIND = 6,
+    GM_OUT_OF_SCOPE = 7,
+    GM_NO_DELEGATE = 8,
+    GM_STALE = 9,
+    GM_OUT_OF_MEMORY = 10,
+    GM_INTERNAL = 11
+} GmStatus;
+```
+
+| Status | What happened | What to do |
+| --- | --- | --- |
+| `GM_OK` | The check passed | Show the badge |
+| `GM_BAD_ARGUMENT` | A pointer or length made no sense | Fix the caller |
+| `GM_BAD_SIGNATURE` | The signature did not verify | Show nothing; do not retry |
+| `GM_UNTRUSTED_ISSUER` | Signed by a key outside your roots | Show nothing |
+| `GM_NOT_LIVE` | Outside its validity window at the moment you passed | Check the moment before blaming the badge |
+| `GM_REVOKED` | Its id is in your snapshot | Show nothing |
+| `GM_WRONG_KIND` | A kind the call does not take | Call the right verify |
+| `GM_OUT_OF_SCOPE` | A staff badge outside its capability's scope | Show nothing; the organization overreached |
+| `GM_NO_DELEGATE` | A staff badge with no capability supplied | Pass the capability |
+| `GM_STALE` | A snapshot older than the one you hold | Keep what you have |
+| `GM_OUT_OF_MEMORY` | An allocation failed | Release and retry, or fail the check |
+| `GM_INTERNAL` | A fault inside the library | Report it with what you were doing |
+
+## The two people confuse
+
+**`GM_NOT_LIVE`** usually means the moment, not the badge. A device with a
+wrong clock passes a wrong `now`. Check that before telling a user their
+badge expired.
+
+**`GM_STALE`** is the snapshot machinery working. It means you tried to apply
+a list older than the one you have, and the right answer is to keep what you
+have.
+
+## What not to do
+
+Don't retry on `GM_BAD_SIGNATURE`, `GM_UNTRUSTED_ISSUER` or `GM_REVOKED`.
+Those describe the input and will fail identically every time.
+
+Don't show a partial badge on a failure. On any status other than `GM_OK`
+every output cell is left empty, so there's nothing to show.

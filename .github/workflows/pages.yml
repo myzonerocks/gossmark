@@ -1,6 +1,6 @@
 name: pages
 
-# The documentation site is its own tree under site/, so it builds and
+# The documentation site is its own tree under site/, so it gates and
 # publishes on its own and never waits for a core lane. Publishing needs
 # Pages, which a private repository on this plan does not get, so those
 # steps stand down until the repository is public.
@@ -10,11 +10,15 @@ on:
     paths:
       - 'site/**'
       - '.github/workflows/pages.yml'
+  pull_request:
+    paths:
+      - 'site/**'
+      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -55,11 +59,11 @@ jobs:
           retention-days: 7
       - name: visibility
         id: visibility
-        run: echo "public=${{ github.event.repository.visibility == 'public' }}" >> "$GITHUB_OUTPUT"
+        run: echo "public=${{ github.event.repository.visibility == 'public' && github.event_name != 'pull_request' }}" >> "$GITHUB_OUTPUT"
       - uses: actions/configure-pages@v5
-        if: github.event.repository.visibility == 'public'
+        if: steps.visibility.outputs.public == 'true'
       - uses: actions/upload-pages-artifact@v3
-        if: github.event.repository.visibility == 'public'
+        if: steps.visibility.outputs.public == 'true'
         with:
           path: site/dist
 

@@ -9,7 +9,7 @@ const text = ref('')
 
 // Highlighted markup arrives as markup, so the plain text is read back off it.
 onMounted(() => {
-  text.value = block.value?.textContent.replace(/\n$/, '') ?? ''
+  text.value = block.value?.textContent?.replace(/\n$/, '') ?? ''
 })
 </script>
 

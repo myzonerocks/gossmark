@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import BadgeChain from '@/components/BadgeChain.vue'
 import CodeTabs from '@/components/CodeTabs.vue'
-import SealedMessage from '@/components/SealedMessage.vue'
 
 const sdks = [
   {
@@ -86,7 +86,7 @@ const pieces = [
 
       <div class="mt-14 grid items-start gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <CodeTabs />
-        <SealedMessage />
+        <BadgeChain />
       </div>
     </div>
   </section>

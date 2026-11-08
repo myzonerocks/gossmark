@@ -17,3 +17,12 @@ sdk/ts/node_modules/
 sdk/ts/dist/
 sdk/ts/wasm/
 .build/
+
+# A global ignore hides every site/ directory, which would silently drop the
+# documentation site. Claim it here, then hide only its own output.
+!site/
+!site/**
+site/node_modules/
+site/dist/
+site/test-results/
+site/playwright-report/

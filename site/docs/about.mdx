@@ -1,0 +1,44 @@
+---
+title: What it's for
+description: Why a badge is a signed credential rather than a row in your database.
+---
+
+A checkmark usually means a row somewhere says so. That works until you need
+it to mean something off your server: in another app, on a device with no
+signal, or to somebody who doesn't trust your database.
+
+gossmark makes a badge a credential: signed bytes that carry their own proof.
+
+## Why it checks offline
+
+A verifier takes three things and nothing else: the root keys it trusts, a
+revocation snapshot, and the moment to check against.
+
+It never opens a connection and never calls a clock. So the same badge,
+checked on a plane, gives the same answer as it does online, and two clients
+with different wall clocks can't disagree about validity by accident.
+
+The cost is that you must hand it a snapshot. That's deliberate: freshness
+becomes something your app decides and can show, instead of something the
+library hides.
+
+## Why organizations issue through a capability
+
+A newspaper should be able to badge its own journalists without your team
+approving each one. Giving the newspaper a root key would let it badge
+anything.
+
+So it gets a capability: permission to issue for a scope. The scope is
+checked during verification, not trusted, so an organization approved for one
+category can't issue for another.
+
+Revoking that one capability refuses every badge that flowed from it at once.
+
+## Why the subject is not a name
+
+Names change. People rename themselves, organizations rebrand, handles get
+transferred.
+
+A credential's subject is a wallet-bound identifier, so none of that touches
+the badge. Your product maps identifier to display name, and that mapping is
+yours to change.

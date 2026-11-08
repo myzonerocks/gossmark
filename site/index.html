@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="apple-touch-icon" href="/mark.svg" />
+    <title>gossmark</title>
+    <meta name="description" content="The engine behind the checkmark. It issues the credentials a badge is made of and walks the chain behind one offline." />
+    <meta name="theme-color" content="#0a0d14" />
+    <meta property="og:title" content="gossmark" />
+    <meta property="og:description" content="Issue a badge, check its chain, revoke it. Offline, with no clock of its own." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/mark.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Reads the saved theme before the first paint, so nobody sees the wrong one flash. -->
+    <script>
+      try {
+        var saved = localStorage.getItem('gossmark:theme')
+        if (saved === 'light' || saved === 'dark') {
+          document.documentElement.setAttribute('data-theme', saved)
+        }
+      } catch (error) {}
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

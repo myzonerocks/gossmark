@@ -1,0 +1,55 @@
+---
+title: The chain
+description: How an organization issues badges without being handed a root key.
+---
+
+A newspaper should badge its own journalists. Handing it a root key would let
+it badge anything.
+
+So it gets a capability: permission to issue, for a scope. Checking a staff
+badge walks that capability back to a root.
+
+```swift
+let badge = try Mark.verifyStaff(
+    staff: staffCredential,
+    capability: capability,
+    roots: [rootKey],
+    revoked: revokedIds,
+    now: now
+)
+```
+
+In C:
+
+```c
+GmStatus gm_verify_staff(const uint8_t *staff, size_t staff_len,
+                         const uint8_t *capability, size_t capability_len,
+                         const uint8_t *roots, size_t roots_len,
+                         const uint8_t *revoked, size_t revoked_len,
+                         int64_t now, GmBuffer *out);
+```
+
+## The scope is checked, not trusted
+
+An organization approved for one category cannot issue for another. That's
+enforced during verification, so a staff badge outside its capability's scope
+answers `GM_OUT_OF_SCOPE` rather than passing because the organization said
+so.
+
+## Revoking one capability
+
+Revoking a capability's id refuses every badge that flowed from it, at once.
+
+That's the lever you want when an organization loses its standing: one id in
+the next snapshot, and every journalist badge it issued stops checking out.
+Individual staff badges can be revoked by their own ids too.
+
+## What a verified staff badge carries
+
+```swift
+badge.issuer   // the organization's key
+badge.via      // the organization's subject
+```
+
+`via` is how a panel can say which organization vouched, and show that the
+organization itself was verified.

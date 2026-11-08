@@ -1,0 +1,48 @@
+---
+title: Checking offline
+description: Three inputs, no connection, no clock, and the same answer everywhere.
+---
+
+A verifier takes its roots, a revocation snapshot and the moment to check
+against. That's all.
+
+```swift
+let badge = try Mark.verifyDirect(signed: signed, roots: roots, revoked: revoked, now: now)
+```
+
+## Nothing fetches
+
+There's no network code in the library. A badge on a plane checks exactly as
+it does on wifi, and your app is never blocked on a request it didn't choose
+to make.
+
+What you give up is automatic freshness. You decide when to fetch a snapshot,
+and the library tells you how old the one you have is.
+
+## Nothing reads a clock
+
+You pass `now`. The library never calls one.
+
+Two devices with different wall clocks therefore fail the same way, which is
+not what happens when each one asks its own system. It also makes tests
+deterministic: a badge that expires at a known second can be checked on both
+sides of that second without touching the machine's time.
+
+## What to pass
+
+```swift
+now: Int64(Date().timeIntervalSince1970)
+```
+
+Use your app's trusted time if you have one. If you don't, the system clock
+is fine, and the failure mode is visible rather than silent.
+
+## Sizing a check before you make one
+
+```c
+size_t gm_preimage_len(void);
+size_t gm_signed_len(void);
+size_t gm_verified_len(void);
+```
+
+Fixed lengths, so a host with no heap to spare can allocate exactly once.

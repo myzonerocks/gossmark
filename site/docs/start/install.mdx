@@ -1,0 +1,73 @@
+---
+title: Install
+description: One coordinate per platform. The compiled core ships inside each package.
+---
+
+## Swift
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/myzonerocks/gossmark", from: "0.1.0"),
+],
+targets: [
+    .target(name: "YourApp", dependencies: [
+        .product(name: "Gossmark", package: "gossmark"),
+    ]),
+]
+```
+
+## Kotlin
+
+```kotlin
+// build.gradle.kts
+implementation("io.github.avosa:gossmark:0.1.0")
+```
+
+## TypeScript
+
+**bun**
+
+```bash
+bun add @myzonerocks/gossmark
+```
+
+**npm**
+
+```bash
+npm install @myzonerocks/gossmark
+```
+
+**pnpm**
+
+```bash
+pnpm add @myzonerocks/gossmark
+```
+
+## Go
+
+```bash
+go get github.com/myzonerocks/gossmark/sdk/go
+```
+
+## C
+
+Build the library and the header:
+
+```bash
+zig build c
+```
+
+Other targets:
+
+```bash
+zig build apple
+```
+
+```bash
+zig build android
+```
+
+```bash
+zig build wasm
+```

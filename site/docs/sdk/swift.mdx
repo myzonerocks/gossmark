@@ -1,0 +1,78 @@
+---
+title: Swift
+description: Sign, verify and revoke on iOS and macOS, through the package's own XCFramework.
+---
+
+```swift
+import Gossmark
+```
+
+## Keys
+
+```swift
+let pub = try Mark.publicKey(seed: seed)
+```
+
+## Signing
+
+```swift
+let signed = try Mark.sign(seed: seed, preimage: preimage)
+```
+
+The issuer named inside the preimage must be the key the seed belongs to, so
+a credential can never claim one issuer and be signed by another.
+
+## Verifying
+
+```swift
+let badge = try Mark.verifyDirect(
+    signed: signed, roots: [rootKey], revoked: revokedIds, now: now
+)
+
+let staffBadge = try Mark.verifyStaff(
+    staff: staff, capability: capability,
+    roots: [rootKey], revoked: revokedIds, now: now
+)
+```
+
+Roots are 32 bytes each, revoked ids 16 bytes each. The SDK flattens the
+arrays for you.
+
+## What you get back
+
+```swift
+public struct Badge: Equatable, Sendable {
+    public let kind: Kind          // .individual, .organization, .capability, .staff
+    public let subject: Subject    // chain and address, never a handle
+    public let category: String
+    public let issuedAt: Int64
+    public let expiresAt: Int64    // zero when it does not expire
+    public let issuer: Data
+    public let via: Subject?       // the organization, for a staff badge
+}
+```
+
+`Badge` is `Sendable`, so it crosses actors freely once you have it.
+
+## Revocation
+
+```swift
+let snapshot = try Mark.signSnapshot(seed: rootSeed, seq: 42, issuedAt: now, ids: ids)
+
+let (ids, seq, issuedAt) = try Mark.openSnapshot(snapshot, roots: [rootKey], heldSeq: held)
+```
+
+## Errors
+
+```swift
+public enum MarkError: Int32, Error, Sendable {
+    case badArgument = 1
+    case badSignature = 2
+    case untrustedIssuer = 3
+    case notLive = 4
+    case revoked = 5
+    case wrongKind = 6
+}
+```
+
+See [errors](/docs/concepts/errors) for what each one should mean to your UI.

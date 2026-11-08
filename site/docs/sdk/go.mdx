@@ -1,0 +1,58 @@
+---
+title: Go
+description: Sign, verify and revoke from a Go service.
+---
+
+```bash
+go get github.com/myzonerocks/gossmark/sdk/go
+```
+
+## Signing
+
+```go
+signed, err := gossmark.Sign(seed, credential)
+```
+
+## Verifying
+
+```go
+badge, err := gossmark.VerifyDirect(signed, roots, revoked, now)
+badge, err = gossmark.VerifyStaff(staff, capability, roots, revoked, now)
+```
+
+There's also a general entry point when your code already knows which shape
+it has:
+
+```go
+badge, err := gossmark.Verify(/* ... */)
+```
+
+## Types
+
+```go
+type Badge struct { /* kind, subject, category, issuedAt, expiresAt, issuer, via */ }
+type Subject struct { /* chain, address */ }
+type Credential struct{}
+type Signed struct{}
+type Roots struct{}
+type Revoked struct{}
+```
+
+## Wire helpers
+
+```go
+gossmark.PutSigned(buf, signed)
+signed, rest := gossmark.TakeSigned(buf)
+gossmark.PutSnapshot(buf, snapshot)
+n := gossmark.SnapshotLen(snapshot)
+```
+
+These are for writing credentials into a buffer you already own, which is
+what a service doing many checks per request wants.
+
+## Revocation
+
+```go
+snapshot, err := gossmark.SignSnapshot(seed, seq, issuedAt, ids)
+ids, seq, issuedAt, err := gossmark.VerifySnapshot(snapshot, roots, heldSeq)
+```

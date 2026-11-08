@@ -1,0 +1,77 @@
+---
+title: Quickstart
+description: Sign a badge, check it, and take it away again.
+---
+
+## 1. Get the issuer's public key
+
+An issuer names its key inside every credential it signs, so you need the key
+before you can build one.
+
+```swift
+let pub = try Mark.publicKey(seed: seed)
+```
+
+## 2. Sign a credential
+
+In goes the preimage exactly as the library lays it out. Out comes that
+preimage followed by its signature.
+
+```swift
+let signed = try Mark.sign(seed: seed, preimage: preimage)
+```
+
+The issuer named inside must be the key the seed belongs to, so a credential
+can never claim one issuer and be signed by another.
+
+## 3. Check it
+
+```swift
+let badge = try Mark.verifyDirect(
+    signed: signed,
+    roots: [rootKey],
+    revoked: revokedIds,
+    now: Int64(Date().timeIntervalSince1970)
+)
+```
+
+You pass the moment. The library never reads a clock, which is what makes two
+devices agree.
+
+## 4. Read what it says
+
+```swift
+badge.kind        // .individual, .organization, .capability, .staff
+badge.subject     // a wallet-bound identifier, never a handle
+badge.category
+badge.issuedAt
+badge.expiresAt   // zero when it does not expire
+badge.issuer
+badge.via         // the organization, for a staff badge
+```
+
+`Badge` is built only by a check, never by hand. Holding one is the proof
+that a chain was walked.
+
+## 5. Take one away
+
+Sign a snapshot of revoked ids:
+
+```swift
+let snapshot = try Mark.signSnapshot(seed: rootSeed, seq: 42, issuedAt: now, ids: ids)
+```
+
+And on the client:
+
+```swift
+let (ids, seq, issuedAt) = try Mark.openSnapshot(snapshot, roots: [rootKey], heldSeq: held)
+```
+
+An older or equal sequence answers a stale error, so replaying an earlier
+list can never bring a revoked badge back.
+
+## Next
+
+- [Credentials](/docs/concepts/credentials) for what the four kinds are.
+- [The chain](/docs/concepts/chain) for how an organization issues.
+- [Checking offline](/docs/concepts/offline) before you ship.

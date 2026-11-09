@@ -86,12 +86,15 @@ jobs:
         run: |
           if gh api "repos/$GITHUB_REPOSITORY/pages" >/dev/null 2>&1; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
-          elif gh api -X POST "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow >/dev/null 2>&1; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Pages is not enabled and this token may not create it. Run: gh api -X POST repos/$GITHUB_REPOSITORY/pages -f build_type=workflow"
+            exit 0
           fi
+          if out=$(gh api -X POST "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow 2>&1); then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Could not create the Pages site: $out"
+          echo "::warning::Run: gh api -X POST repos/$GITHUB_REPOSITORY/pages -f build_type=workflow"
       - uses: actions/configure-pages@v5
         if: steps.site.outputs.ready == 'true'
       - uses: actions/upload-pages-artifact@v3

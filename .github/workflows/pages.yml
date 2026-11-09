@@ -1,9 +1,9 @@
 name: pages
 
-# The documentation site is its own tree under site/, so it gates and
-# publishes on its own and never waits for a core lane. Publishing needs
-# Pages, which a private repository on this plan does not get, so those
-# steps stand down until the repository is public.
+# The site gates and publishes on its own, never waiting for a core lane.
+# Publishing pushes the built site to gh-pages, which is what turns Pages on:
+# GitHub creates the site from the branch, so no administration token is
+# needed and a repository that goes public serves again by itself.
 on:
   push:
     branches: [main]
@@ -24,16 +24,12 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    outputs:
-      publishable: ${{ steps.site.outputs.ready }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
@@ -60,6 +56,7 @@ jobs:
           name: playwright-report
           path: site/playwright-report
           retention-days: 7
+
       # The event payload carries the visibility as it was when the event fired,
       # which is stale if the repository flipped since. Ask for the live answer.
       - name: visibility
@@ -74,39 +71,19 @@ jobs:
           fi
           echo "public=$public" >> "$GITHUB_OUTPUT"
 
-      # Going private deletes the Pages site, so going public again needs it
-      # created. The workflow token can do that only where the repository's
-      # workflow permissions are read and write; where it cannot, this stands
-      # down with a warning rather than failing the lane.
-      - name: pages site
-        id: site
+      # A generated branch, replaced whole each time. .nojekyll keeps the
+      # underscore-prefixed assets a bundler emits from being skipped.
+      - name: publish
         if: steps.visibility.outputs.public == 'true'
+        working-directory: site/dist
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh api "repos/$GITHUB_REPOSITORY/pages" >/dev/null 2>&1; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          elif gh api -X POST "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow >/dev/null 2>&1; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Pages is not enabled and this token may not create it. Run: gh api -X POST repos/$GITHUB_REPOSITORY/pages -f build_type=workflow"
-          fi
-      - uses: actions/configure-pages@v5
-        if: steps.site.outputs.ready == 'true'
-      - uses: actions/upload-pages-artifact@v3
-        if: steps.site.outputs.ready == 'true'
-        with:
-          path: site/dist
-
-  deploy:
-    needs: build
-    if: needs.build.outputs.publishable == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          touch .nojekyll
+          git init -q
+          git checkout -qb gh-pages
+          git add -A
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -q -m "the built documentation site"
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

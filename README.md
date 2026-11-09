@@ -9,7 +9,7 @@ by anyone with no server in the loop.
 ## The one rule
 
 Verification never touches a handle. A handle is the person's, permanently, exactly as they chose
-it. A badge is metadata beside it, never part of it.
+it. A badge is metadata beside it, never part of user's handle.
 
 That rule is visible in what this engine does not know: nothing here has a handle in it at all. A
 credential's subject is a wallet-bound identifier, so somebody may rename themselves whenever they
